@@ -54,7 +54,7 @@ if (fs.existsSync(directoryPath)) {
                 } else if (fileExtension === '.out') {
                     isOutputFile = filePath;
                 } else if ((fileExtension === '.java' || fileExtension === '.py') && !isSourceCode) {
-                    isSourceCode = {extention: fileExtension === '.java' ? 'Java' : 'Python', path: filePath};
+                    isSourceCode = { extention: fileExtension === '.java' ? 'Java' : 'Python', path: filePath };
                 }
             }
         }
@@ -76,23 +76,23 @@ if (fs.existsSync(directoryPath)) {
     process.exit(0);
 }
 
-loading.start('Running ' +  color.bgCyan(path.basename(isSourceCode.path)));
+loading.start('Running ' + color.bgCyan(path.basename(isSourceCode.path)));
 
 runJavaOrPythonFile(isSourceCode.path).then((result) => {
-    loading.stop('Running ' +  color.bgCyan(path.basename(isSourceCode.path)));
-    result.output = result.output.substring(0, 50);;
+    loading.stop('Running ' + color.bgCyan(path.basename(isSourceCode.path)));
+    result.output = result.output.substring(0, 70);;
     p.note(`Time complexity: ${color.bgYellow(result.elapsedTime)} ms\nSpace complexity: ${color.bgMagenta(result.spaceComplexity)} MB \nOutput: ${result.output}`);
     p.outro(color.bgGreen("Test complete"));
     compareOutputs()
 }).catch((error) => {
     p.note(error.message)
-    loading.stop('Running ' +  color.bgCyan(path.basename(isSourceCode.path)));
+    loading.stop('Running ' + color.bgCyan(path.basename(isSourceCode.path)));
     p.outro("Error while compiling or running the source code")
 })
 
 function compareOutputs() {
     const file = findFileByExtension(directoryPath, 'answer');
-    if(!file) {
+    if (!file) {
         p.outro(color.bgRed("No answer file detected"))
         process.exit(0);
     }
@@ -101,13 +101,13 @@ function compareOutputs() {
     const check = compareFiles(file, isOutputFile)
     loading.stop('Checking answer ' + path.basename(file));
 
-    if(check.areIdentical) {
+    if (check.areIdentical) {
         p.outro(color.bgGreen("Test complete success"));
     } else {
         let stringNote = "";
-        if(check.numDifferences > 0) {
+        if (check.numDifferences > 0) {
             stringNote += `${color.bgRed(check.numDifferences + " case(s) have not been handled")}\n`;
-        } else if(check.differentLines > 0) {
+        } else if (check.differentLines > 0) {
             stringNote += `${color.bgRed(check.differentLines)} case(s) are wrong\n\n`;
             stringNote += `${color.bgRed(`Your answer: ${check.line1}`)}\n${color.bgGreen(`Correct answer: ${check.line2}`)}\n`;
         }
@@ -117,47 +117,53 @@ function compareOutputs() {
 }
 
 function runJavaOrPythonFile(filePath) {
-  return new Promise((resolve, reject) => {
-    const extension = filePath.split('.').pop();
-    const startTime = process.hrtime();
-    const currentSpace = process.memoryUsage().heapUsed;
+    return new Promise((resolve, reject) => {
+        const extension = filePath.split('.').pop();
+        const startTime = process.hrtime();
+        const currentSpace = process.memoryUsage().heapUsed;
+        const options = {
+            cwd: directoryPath,
+        };
 
-    if (extension === 'java') {
-      execFile('javac', [filePath], (error, stdout, stderr) => {
-        if (error) {
-          reject(error);
+        if (extension === 'java') {
+            execFile('javac', [filePath], options, (error, stdout, stderr) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    console.log(filePath)
+                    execFile('java', [filePath], options, (error, stdout, stderr) => {
+                        if (error) {
+                            reject(error);
+                        } else {
+                            const elapsedTime = process.hrtime(startTime);
+                            console.log(stdout)
+                            resolve({
+                                output: stdout.trim(),
+                                elapsedTime: Math.ceil((elapsedTime[0] * 1e9 + elapsedTime[1]) / 1e6), // in nanoseconds
+                                spaceComplexity: Math.ceil((process.memoryUsage().heapUsed - currentSpace) / 1024 / 1024) // Python's memory usage is more complex to measure
+                            });
+                        }
+                    });
+                }
+            });
+        } else if (extension === 'py') {
+
+            execFile('python3', [filePath], options, (error, stdout, stderr) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    const elapsedTime = process.hrtime(startTime);
+                    resolve({
+                        output: stdout.trim(),
+                        elapsedTime: Math.ceil((elapsedTime[0] * 1e9 + elapsedTime[1]) / 1e6),
+                        spaceComplexity: Math.ceil((process.memoryUsage().heapUsed - currentSpace) / 1024 / 1024)
+                    });
+                }
+            });
         } else {
-          execFile('java', [filePath.split('.')[0] + ".java"], (error, stdout, stderr) => {
-            if (error) {
-              reject(error);
-            } else {
-              const elapsedTime = process.hrtime(startTime);
-              resolve({
-                output: stdout.trim(),
-                elapsedTime: Math.ceil((elapsedTime[0] * 1e9 + elapsedTime[1]) / 1e6), // in nanoseconds
-                spaceComplexity: Math.ceil((process.memoryUsage().heapUsed - currentSpace) / 1024 / 1024) // Python's memory usage is more complex to measure
-              });
-            }
-          });
+            reject(new Error('Unsupported file extension. Only .java and .py files are supported.'));
         }
-      });
-    } else if (extension === 'py') {
-      execFile('python3', [filePath], (error, stdout, stderr) => {
-        if (error) {
-          reject(error);
-        } else {
-          const elapsedTime = process.hrtime(startTime);
-          resolve({
-            output: stdout.trim(),
-            elapsedTime: Math.ceil((elapsedTime[0] * 1e9 + elapsedTime[1]) / 1e6), // in nanoseconds
-            spaceComplexity: Math.ceil((process.memoryUsage().heapUsed - currentSpace) / 1024 / 1024) // Python's memory usage is more complex to measure
-          });
-        }
-      });
-    } else {
-      reject(new Error('Unsupported file extension. Only .java and .py files are supported.'));
-    }
-  });
+    });
 }
 
 function compareFiles(file1, file2) {
@@ -168,7 +174,7 @@ function compareFiles(file1, file2) {
     let firstErrorBool = false;
 
     if (content1 === content2) {
-        return {areIdentical: true};
+        return { areIdentical: true };
     } else {
         const lines1 = content1.split('\n');
         const lines2 = content2.split('\n');
@@ -178,7 +184,7 @@ function compareFiles(file1, file2) {
             if (lines1[i] !== lines2[i]) {
                 counterOfErrors++;
 
-                if(!firstErrorBool) {
+                if (!firstErrorBool) {
                     firstError = [lines1[i], lines2[i]];
                     firstErrorBool = true;
                 }
