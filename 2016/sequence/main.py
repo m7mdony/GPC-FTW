@@ -9,7 +9,7 @@ def calculate(numbers):
     while not changed:
 
         if numbers[index]<numbers[index+1]:
-            state=True#first chang is increasing
+            state=True#first chang is increasin
 
 
             changed=True
