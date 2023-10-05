@@ -148,7 +148,7 @@ function runJavaOrPythonFile(filePath) {
             });
         } else if (extension === 'py') {
 
-            execFile('python3', [filePath], options, (error, stdout, stderr) => {
+            execFile('python', [filePath], options, (error, stdout, stderr) => {
                 if (error) {
                     reject(error);
                 } else {
