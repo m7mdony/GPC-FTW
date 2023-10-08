@@ -1,5 +1,10 @@
 def calculate(line):
     answer = line[0]-(line[2]-line[3])
+    
+    if answer > line[0]:
+        answer=line[0]
+    if answer <1:
+        answer=1
     return answer
 
 with open("league.answer","w"):
