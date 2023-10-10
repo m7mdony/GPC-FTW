@@ -5,12 +5,20 @@ import * as fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execFile, spawn } from 'child_process';
+import os from 'os'
 const loading = spinner();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const processArguments = process.argv;
 let yearToTest;
 let examToTest;
+let pythonCommand = os.platform() === 'darwin' ? 'python3' : 'python';
+
+let argumentsFlags = {
+    hideAnswers: false,
+    hideStats: false,
+    showFullStats: false
+}
 
 if (processArguments.length == 2) {
     p.intro(`${color.bgRed(color.green(' Please supply arguments -y '))}`);
@@ -25,6 +33,18 @@ if (processArguments[4] == "-n" && processArguments[5] != undefined) {
     examToTest = processArguments[5];
 } else {
     p.intro(`${color.bgCyan(color.black(' Undefined error occured '))}`);
+}
+
+if (processArguments.includes("--hide-answers")) {
+    argumentsFlags["hideAnswers"] = true;
+}
+
+if (processArguments.includes("--hide-stats")) {
+    argumentsFlags["hideStats"] = true;
+}
+ 
+if (processArguments.includes("--show-full-stats")) {
+    argumentsFlags["showFullStats"] = true;
 }
 
 p.intro(`${color.bgMagenta(color.black(' Testing '))} ${color.bgRed(color.green(yearToTest))}`);
@@ -81,8 +101,14 @@ loading.start('Running ' + color.bgCyan(path.basename(isSourceCode.path)));
 runJavaOrPythonFile(isSourceCode.path).then((result) => {
     loading.stop('Running ' + color.bgCyan(path.basename(isSourceCode.path)));
     result.output = result.output.substring(0, 70);;
-    p.note(`Time complexity: ${color.bgYellow(result.elapsedTime)} ms\nSpace complexity: ${color.bgMagenta(result.spaceComplexity)} MB \nOutput: ${result.output}`);
-    p.outro(color.bgGreen("Test complete"));
+    if(!argumentsFlags["hideStats"]) {
+        p.note(`Time complexity: ${color.bgYellow(result.elapsedTime)} ms\nSpace complexity: ${color.bgMagenta(result.spaceComplexity)} MB \nOutput: ${result.output}`);
+        p.outro(color.bgGreen("Test complete"));
+    } else if(argumentsFlags["showFullStats"]) {
+        // Add more stats
+    } else {
+        p.note("You can remove --hide-answers to view your answers");
+    }
     compareOutputs()
 }).catch((error) => {
     p.note(error.message)
@@ -105,11 +131,15 @@ function compareOutputs() {
         p.outro(color.bgGreen("Test complete success"));
     } else {
         let stringNote = "";
-        if (check.numDifferences > 0) {
-            stringNote += `${color.bgRed(check.numDifferences + " case(s) have not been handled")}\n`;
-        } else if (check.differentLines > 0) {
-            stringNote += `${color.bgRed(check.differentLines)} case(s) are wrong\n\n`;
-            stringNote += `${color.bgRed(`Your answer: ${check.line1}`)}\n${color.bgGreen(`Correct answer: ${check.line2}`)}\n`;
+        if(!argumentsFlags["hideAnswers"]) {
+            if (check.numDifferences > 0) {
+                stringNote += `${color.bgRed(check.numDifferences + " case(s) have not been handled")}\n`;
+            } else if (check.differentLines > 0) {
+                stringNote += `${color.bgRed(check.differentLines)} case(s) are wrong\n\n`;
+                stringNote += `${color.bgRed(`Your answer: ${check.line1}`)}\n${color.bgGreen(`Correct answer: ${check.line2}`)}\n`;
+            }
+        } else {
+            stringNote += `${("You can remove --hide-answers to view your answers")}`;
         }
         p.note(stringNote)
         p.outro(color.bgRed("Test complete failed"));
@@ -148,7 +178,9 @@ function runJavaOrPythonFile(filePath) {
             });
         } else if (extension === 'py') {
 
-            execFile('python', [filePath], options, (error, stdout, stderr) => {
+
+            execFile(pythonCommand, [filePath], options, (error, stdout, stderr) => {
+
                 if (error) {
                     reject(error);
                 } else {
