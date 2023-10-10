@@ -9,11 +9,7 @@ def calculate(line):
         sentence_list.append(char)
         sentence= "".join(sentence_list)
         list.append(sentence)
-
-
     list.sort()
-
-
     return list.index(line[0])
 
 with open("sorter.answer","w"):
