@@ -13,7 +13,6 @@ public class main {
             while (line != null && !line.equals("0 0")) {
                 String num = line.split(" ")[0];
                 String base = line.split(" ")[1];
-                System.out.println("Number is " + num);
                 boolean checkIfPalindrome = isPalindrome(convertBase(Integer.parseInt(num),
                         Integer.parseInt(base)));
                 String transform = checkIfPalindrome ? "Yes" : "No";
@@ -44,7 +43,6 @@ public class main {
     }
 
     public static boolean isPalindrome(String[] input) {
-        System.out.println(Arrays.toString(input));
         boolean result = true;
 
         for (int i = 0, j = input.length - 1; i < input.length; i++, j--) {
