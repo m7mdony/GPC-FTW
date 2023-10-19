@@ -79,7 +79,7 @@ public class main {
 
         for (int i = counter + 1; i < characters.length(); i++) {
             char character = characters.charAt(i);
-            generateCombinationsRecursive(k - 1, s, characters, currentCombination + character, combinations, i);
+            generateCombinationsRecursive(k, s, characters, currentCombination + character, combinations, i);
         }
     }
 

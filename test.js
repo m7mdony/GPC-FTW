@@ -177,8 +177,6 @@ function runJavaOrPythonFile(filePath) {
                 }
             });
         } else if (extension === 'py') {
-
-
             execFile(pythonCommand, [filePath], options, (error, stdout, stderr) => {
 
                 if (error) {
