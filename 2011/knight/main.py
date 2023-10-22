@@ -18,10 +18,11 @@ def posible(board,i,j):
     neighbor_contents = []
     for neighbor_x,neighbor_y in moves:
         # Check if the neighbor is within the bounds of the map
-        if 0 <= neighbor_x < len(board) and 0 <= neighbor_y < len(board[0]):
+        if 0 <= neighbor_x < len(board) and 0 <= neighbor_y < len(board[0]) :
             # Get the content of the neighbor cell
-            neighbor_content = board[neighbor_x][neighbor_y]
-            neighbor_contents.append([neighbor_x,neighbor_y])
+            if board[neighbor_x][neighbor_y]=="X":
+                neighbor_content = board[neighbor_x][neighbor_y]
+                neighbor_contents.append([neighbor_x,neighbor_y])
     return neighbor_contents
         
 def calculate(board,target,current):
