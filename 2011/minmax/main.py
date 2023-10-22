@@ -13,8 +13,9 @@ def posible(string):
                     list.append(newstring)
     return list
 
-def min(map,player1,player2):
-   
+def min(map,player1,player2,memo_max,memo_min):
+    if str(map)in memo_min:
+        return memo_min[str(map)]
     counter=0
     for line in map:
         counter+=line.count("O")
@@ -27,13 +28,16 @@ def min(map,player1,player2):
         for move in moves:
             map_copy=map.copy()
             map_copy[i]=move
-            resualt=max(map_copy,player1,player2)
+            resualt=max(map_copy,player1,player2,memo_max,memo_min)
             if resualt==-1:
+                memo_min[str(map)]=-1
                 point=-1
+    memo_min[str(map)]=point
     return point
 
-def max(map,player1,player2):
- 
+def max(map,player1,player2,memo_max,memo_min):
+    if str(map)in memo_max:
+        return memo_max[str(map)]
     counter=0
     for line in map:
         counter+=line.count("O")
@@ -45,9 +49,11 @@ def max(map,player1,player2):
         for move in moves:
             map_copy=map.copy()
             map_copy[i]=move
-            resualt=min(map_copy,player1,player2)
+            resualt=min(map_copy,player1,player2,memo_max,memo_min)
             if resualt==1:
+                memo_max[str(map)]=1
                 point=1
+    memo_max[str(map)]=point
     return point
                
 
@@ -65,8 +71,9 @@ for line in lines:
     player1=line[4]
     player2=line[5]
 
-  
-    answer = max(map,player1,player2)
+    memo_max={}
+    memo_min={}
+    answer = max(map,player1,player2,memo_max,memo_min)
     if answer==1:
         print(player1)
         text+=str(player1)+"\n"
