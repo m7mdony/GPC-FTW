@@ -16,6 +16,8 @@ def posible(string):
 def min(map,player1,player2,memo_max,memo_min):
     if str(map)in memo_min:
         return memo_min[str(map)]
+    if str(map)in memo_max:
+        return memo_max[str(map)]*-1
     counter=0
     for line in map:
         counter+=line.count("O")
@@ -38,6 +40,8 @@ def min(map,player1,player2,memo_max,memo_min):
 def max(map,player1,player2,memo_max,memo_min):
     if str(map)in memo_max:
         return memo_max[str(map)]
+    if str(map)in memo_min:
+        return memo_min[str(map)]*-1
     counter=0
     for line in map:
         counter+=line.count("O")
@@ -66,13 +70,14 @@ with open("minmax.in","r")as file:
 lines.pop(0)
 
 text=""
+memo_max={}
+memo_min={}
 for line in lines:
     map=line[:4:]
     player1=line[4]
     player2=line[5]
 
-    memo_max={}
-    memo_min={}
+    
     answer = max(map,player1,player2,memo_max,memo_min)
     if answer==1:
         print(player1)
