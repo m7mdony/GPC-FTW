@@ -156,7 +156,7 @@ function runJavaOrPythonFile(filePath) {
         };
 
         if (extension === 'java') {
-            execFile('javac', [filePath], options, (error, stdout, stderr) => {
+            execFile('java', [filePath], options, (error, stdout, stderr) => {
                 if (error) {
                     reject(error);
                 } else {
